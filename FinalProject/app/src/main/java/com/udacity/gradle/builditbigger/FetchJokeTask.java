@@ -9,11 +9,11 @@ import com.udacity.gradle.builditbigger.backend.myApi.MyApi;
 
 import java.io.IOException;
 
-class FetchJokeTask extends AsyncTask<Void, Void, JokeResult> {
+public class FetchJokeTask extends AsyncTask<Void, Void, JokeResult> {
     private static MyApi myApiService = null;
     Listener listener;
 
-    interface Listener {
+    public interface Listener {
         void onSuccess(String joke);
 
         void onError(String error);
@@ -31,7 +31,7 @@ class FetchJokeTask extends AsyncTask<Void, Void, JokeResult> {
                     // options for running against local devappserver
                     // - 10.0.2.2 is localhost's IP address in Android emulator
                     // - turn off compression when running against local devappserver
-                    .setRootUrl("http://10.0.2.2:8880/_ah/api/")
+                    .setRootUrl("http://10.0.2.2:8888/_ah/api/")
                     .setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
                         @Override
                         public void initialize(AbstractGoogleClientRequest<?> abstractGoogleClientRequest) throws IOException {
