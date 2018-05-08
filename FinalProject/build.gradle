@@ -20,3 +20,12 @@ allprojects {
         jcenter()
     }
 }
+
+task startGceServerRunTestsStopGceServer {
+    dependsOn ':backend:appengineStart'
+    dependsOn ':app:connectedCheck'
+    dependsOn ':backend:appengineStop'
+
+    tasks.findByPath(':app:connectedCheck').mustRunAfter ':backend:appengineStart'
+    tasks.findByPath(':backend:appengineStop').mustRunAfter ':app:connectedCheck'
+}

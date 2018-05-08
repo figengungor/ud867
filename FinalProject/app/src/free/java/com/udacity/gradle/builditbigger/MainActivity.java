@@ -5,22 +5,39 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import com.figengungor.jokedisplayer.JokeActivity;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
 
 public class MainActivity extends AppCompatActivity {
 
     ProgressBar loadingPb;
+    private InterstitialAd mInterstitialAd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         loadingPb = findViewById(R.id.loadingPb);
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId(getString(R.string.interstitial_ad_unit_id));
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdClosed() {
+                // Code to be executed when when the interstitial ad is closed.
+                // Load the next interstitial.
+                mInterstitialAd.loadAd(new AdRequest.Builder().build());
+                openJokeActivity();
+            }
+        });
     }
 
     @Override
@@ -46,8 +63,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void tellJoke(View view) {
-        loadingPb.setVisibility(View.VISIBLE);
-        new FetchJokeTask(listener).execute();
+        if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+        } else {
+            Log.d("TAG", "The interstitial wasn't loaded yet.");
+            openJokeActivity();
+        }
     }
 
     public void setListener(FetchJokeTask.Listener listener) {
@@ -75,6 +96,12 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+
+    private void openJokeActivity(){
+        loadingPb.setVisibility(View.VISIBLE);
+        new FetchJokeTask(listener).execute();
+    }
+
 
 }
 
