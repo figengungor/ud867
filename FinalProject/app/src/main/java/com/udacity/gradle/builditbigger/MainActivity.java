@@ -2,19 +2,25 @@ package com.udacity.gradle.builditbigger;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import com.figengungor.jokedisplayer.JokeActivity;
 
-public class MainActivity extends AppCompatActivity implements FetchJokeTask.Listener {
+public class MainActivity extends AppCompatActivity {
+
+    ProgressBar loadingPb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        loadingPb = findViewById(R.id.loadingPb);
     }
 
     @Override
@@ -40,19 +46,37 @@ public class MainActivity extends AppCompatActivity implements FetchJokeTask.Lis
     }
 
     public void tellJoke(View view) {
-        new FetchJokeTask(this).execute();
+        loadingPb.setVisibility(View.VISIBLE);
+        new FetchJokeTask(listener).execute();
     }
 
-    @Override
-    public void onSucces(String joke) {
-        startActivity(new Intent(this, JokeActivity.class)
-                .putExtra(JokeActivity.EXTRA_JOKE, joke));
+    public void setListener(FetchJokeTask.Listener listener) {
+        this.listener = listener;
     }
 
-    @Override
-    public void onError(String error) {
-        Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
-    }
+    FetchJokeTask.Listener listener = new FetchJokeTask.Listener(){
+
+        @Override
+        public void onSuccess(String joke) {
+            loadingPb.setVisibility(View.GONE);
+            startActivity(new Intent(MainActivity.this, JokeActivity.class)
+                    .putExtra(JokeActivity.EXTRA_JOKE, joke));
+        }
+        //https://stackoverflow.com/questions/3875184/cant-create-handler-inside-thread-that-has-not-called-looper-prepare
+        @Override
+        public void onError(final String error) {
+            loadingPb.setVisibility(View.GONE);
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        }
+    };
+
+
 }
 
 
