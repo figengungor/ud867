@@ -10,14 +10,8 @@ import org.junit.runner.RunWith;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.matcher.RootMatchers.withDecorView;
-import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static junit.framework.Assert.assertTrue;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 
 /**
  * Created by figengungor on 5/8/2018.
@@ -34,12 +28,8 @@ public class FetchJokesMainActivityTest {
     public ActivityTestRule<MainActivity> mActivityTestRule =
             new ActivityTestRule<>(MainActivity.class);
 
-    private static final String JOKE = "Joke";
-    private static final String ERROR = "Error";
-
     @Test
     public void fetchJokesTest() {
-
         MainActivity mainActivity = mActivityTestRule.getActivity();
         mainActivity.setListener(new FetchJokeTask.Listener() {
             @Override
@@ -54,27 +44,6 @@ public class FetchJokesMainActivityTest {
         });
 
         onView(withId(R.id.tellAJokeBtn)).perform(click());
-
-    }
-
-    @Test
-    public void fetchJokesOnSuccess_JokeIsDisplayedInNewActivity() {
-
-        MainActivity mainActivity = mActivityTestRule.getActivity();
-        mainActivity.listener.onSuccess(JOKE);
-
-        onView(withId(R.id.jokeTv)).check(matches(withText(JOKE)));
-
-    }
-
-    @Test
-    public void fetchJokesOnError_ErrorIsDisplayedWithToast() {
-
-        MainActivity mainActivity = mActivityTestRule.getActivity();
-        mainActivity.listener.onError(ERROR);
-
-        onView(withText(ERROR)).inRoot(withDecorView((is(not(mainActivity.getWindow().getDecorView()))))).check(matches(isDisplayed()));
-
     }
 
 }

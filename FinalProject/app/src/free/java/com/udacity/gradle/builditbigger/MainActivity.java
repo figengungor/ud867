@@ -4,6 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
+import android.support.test.espresso.IdlingResource;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -11,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
 import com.figengungor.jokedisplayer.JokeActivity;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -21,11 +26,19 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar loadingPb;
     private InterstitialAd mInterstitialAd;
 
+    // The Idling Resource which will be null in production.
+    @Nullable
+    private SimpleIdlingResource mIdlingResource;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         loadingPb = findViewById(R.id.loadingPb);
+        getIdlingResource();
+        if (mIdlingResource != null) {
+            mIdlingResource.setIdleState(false);
+        }
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getString(R.string.interstitial_ad_unit_id));
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
@@ -36,6 +49,25 @@ public class MainActivity extends AppCompatActivity {
                 // Load the next interstitial.
                 mInterstitialAd.loadAd(new AdRequest.Builder().build());
                 openJokeActivity();
+                if (mIdlingResource != null) {
+                    mIdlingResource.setIdleState(false);
+                }
+            }
+
+            @Override
+            public void onAdLoaded() {
+                super.onAdLoaded();
+                if (mIdlingResource != null) {
+                    mIdlingResource.setIdleState(true);
+                }
+            }
+
+            @Override
+            public void onAdFailedToLoad(int i) {
+                super.onAdFailedToLoad(i);
+                if (mIdlingResource != null) {
+                    mIdlingResource.setIdleState(true);
+                }
             }
         });
     }
@@ -102,7 +134,17 @@ public class MainActivity extends AppCompatActivity {
         new FetchJokeTask(listener).execute();
     }
 
-
+    /**
+     * Only called from test, creates and returns a new {@link SimpleIdlingResource}.
+     */
+    @VisibleForTesting
+    @NonNull
+    public IdlingResource getIdlingResource() {
+        if (mIdlingResource == null) {
+            mIdlingResource = new SimpleIdlingResource();
+        }
+        return mIdlingResource;
+    }
 }
 
 
